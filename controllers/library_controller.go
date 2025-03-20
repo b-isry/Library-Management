@@ -1,43 +1,48 @@
 package controllers
 
 import (
+	"Library_Management/models"
+	"Library_Management/services"
 	"fmt"
-	"github.com/yourusername/projectname/models"
-	"github.com/yourusername/projectname/services"
 )
 
-func bookController(library *services.Library) {
+func BookController(library *services.Library) {
 	fmt.Println("1. Add Book")
-	fmt.Println("2. Remove Book")
-	fmt.Println("3. Borrow Book")
-	fmt.Println("4. Return Book")
-	fmt.Println("5. List Available Books")
-	fmt.Println("6. List Borrowed Books")
+	fmt.Println("2. Add Member")
+	fmt.Println("3. Remove Book")
+	fmt.Println("4. Borrow Book")
+	fmt.Println("5. Return Book")
+	fmt.Println("6. List Available Books")
+	fmt.Println("7. List Borrowed Books")
+	fmt.Println("8. Exit")
 
 	var choice int
 	fmt.Scan(&choice)
 
-	switch choice{
+	switch choice {
 	case 1:
 		var book models.Books
+		fmt.Println("Enter book ID: ")
+		fmt.Scan(&book.Id)
 		fmt.Println("Enter book title: ")
 		fmt.Scan(&book.Title)
 		fmt.Println("Enter book author: ")
 		fmt.Scan(&book.Author)
-		addBook(library, book)
+		book.Status = "available"
+		library.AddBook(book)
 	case 2:
+		var member models.Member
+		fmt.Println("Enter member ID: ")
+		fmt.Scan(&member.Id)
+		fmt.Println("Enter member name: ")
+		fmt.Scan(&member.Name)
+		member.BorrowedBooks = []models.Books{}
+		library.AddMember(member)
+	case 3:
 		var bookId int
 		fmt.Println("Enter book id: ")
 		fmt.Scan(&bookId)
-		removeBook(library, bookId)
-	case 3:
-		var memberID int
-		var bookID int
-		fmt.Println("Enter member id: ")
-		fmt.Scan(&memberID)
-		fmt.Println("Enter book id: ")
-		fmt.Scan(&bookID)
-		borrowBook(library, memberID, bookID)
+		library.RemoveBook(bookId)
 	case 4:
 		var memberID int
 		var bookID int
@@ -45,19 +50,35 @@ func bookController(library *services.Library) {
 		fmt.Scan(&memberID)
 		fmt.Println("Enter book id: ")
 		fmt.Scan(&bookID)
-		returnBook(library, memberID, bookID)
+		library.BorrowBook(memberID, bookID)
 	case 5:
-		fmt.Println("Available books: ")
-		listAvailableBooks(library)
+		var memberID int
+		var bookID int
+		fmt.Println("Enter member id: ")
+		fmt.Scan(&memberID)
+		fmt.Println("Enter book id: ")
+		fmt.Scan(&bookID)
+		library.ReturnBook(memberID, bookID)
 	case 6:
+		fmt.Println("Available books:")
+		library.ListAvailableBooks()
+	case 7:
 		fmt.Println("Borrowed books: ")
-		listBorrowedBooks(library)
+		library.ListBorrowedBooks()
+	case 8:
+		fmt.Println("Thank you for using the library management system")
+		return
 	default:
 		fmt.Println("Invalid choice")
 	}
 
+	fmt.Println("Do you want to continue? (y/n)")
+	var continueChoice string
+	fmt.Scan(&continueChoice)
+	if continueChoice == "y" {
+		BookController(library)
+	} else {
+		fmt.Println("Thank you for using the library management system")
+	}
+
 }
-
-
-
-
