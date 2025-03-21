@@ -3,11 +3,14 @@ package services
 import (
 	"Library_Management/models"
 	"fmt"
+	"sync"
+	"time"
 )
 
 type Library struct {
 	Books   map[int]models.Books
 	Members map[int]models.Member
+	mu      sync.Mutex
 }
 
 type LibraryManager interface {
@@ -16,6 +19,7 @@ type LibraryManager interface {
 	RemoveBook(bookId int)
 	BorrowBook(memberID int, bookID int)
 	ReturnBook(memberID int, bookID int)
+	ReserveBook(memberID int, bookID int) error
 	ListAvailableBooks() []models.Books
 	ListBorrowedBooks() []models.Books
 }
@@ -79,13 +83,82 @@ func (l *Library) ReturnBook(memberID int, bookID int) {
 	fmt.Printf(" %s returned %s successfully\n", member.Name, book.Title)
 }
 
+func (l *Library) ReserveBook(memberID int, bookID int) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	member, ok := l.Members[memberID]
+	if !ok {
+		return fmt.Errorf("member not found")
+	}
+	book, ok := l.Books[bookID]
+	if !ok {
+		return fmt.Errorf("book not found")
+	}
+	if book.Status != "available" {
+		return fmt.Errorf("book is not available")
+	}
+
+	book.Status = "reserved"
+	l.Books[bookID] = book
+	member.ReservedBooks = append(member.ReservedBooks, book)
+	l.Members[memberID] = member
+
+	// Start a goroutine to handle the reservation and borrowing process
+	go func() {
+		// Wait for 2 seconds to simulate processing time
+		time.Sleep(2 * time.Second)
+
+		l.mu.Lock()
+		defer l.mu.Unlock()
+
+		// Check if the book is still reserved
+		if book, exists := l.Books[bookID]; exists && book.Status == "reserved" {
+			// Process the borrowing
+			book.Status = "borrowed"
+			l.Books[bookID] = book
+
+			// Update member's books
+			if member, exists := l.Members[memberID]; exists {
+				member.ReservedBooks = removeFromSlice(member.ReservedBooks, book)
+				member.BorrowedBooks = append(member.BorrowedBooks, book)
+				l.Members[memberID] = member
+			}
+
+			fmt.Printf("Book %s has been borrowed by %s\n", book.Title, member.Name)
+		}
+	}()
+
+	// Start a goroutine to auto-cancel the reservation after 5 seconds if not borrowed
+	go func() {
+		time.Sleep(5 * time.Second)
+		l.mu.Lock()
+		defer l.mu.Unlock()
+
+		// Check if the book is still reserved
+		if book, exists := l.Books[bookID]; exists && book.Status == "reserved" {
+			book.Status = "available"
+			l.Books[bookID] = book
+			// Remove from member's reserved books
+			if member, exists := l.Members[memberID]; exists {
+				member.ReservedBooks = removeFromSlice(member.ReservedBooks, book)
+				l.Members[memberID] = member
+			}
+			fmt.Printf("Reservation for book %s automatically cancelled\n", book.Title)
+		}
+	}()
+
+	fmt.Printf("%s reserved %s successfully\n", member.Name, book.Title)
+	return nil
+}
+
 func (l *Library) ListAvailableBooks() []models.Books {
 	availableBooks := []models.Books{}
 	for _, book := range l.Books {
 		if book.Status == "available" {
 			availableBooks = append(availableBooks, book)
 		}
-	}	
+	}
 	for _, book := range availableBooks {
 		fmt.Println(book.Title)
 	}
