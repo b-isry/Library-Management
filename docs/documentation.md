@@ -92,14 +92,17 @@ After each operation, the system prompts the user to continue (y/n) to perform a
 
 ## Project Structure
 
-```Library-Management/
+```
+Library-Management/
 ├── main.go                 # Entry point
 ├── controllers/
 │   └── library_controller.go  # User interface handling
 ├── models/
 │   └── models.go          # Data structures
 └── services/
-    └── library_service.go # Business logic
+│   └── library_service.go # Business logic
+├── Tests/
+    └── library_test.go    #Tests functionalities
 
 ```
 
