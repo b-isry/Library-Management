@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"Library_Management/concurrency"
 	"Library_Management/models"
 	"Library_Management/services"
 	"fmt"
 )
 
-func BookController(library *services.Library) {
+func BookController(library *services.Library, reservationHandler *concurrency.ReservationHandler) {
 	fmt.Println("1. Add Book")
 	fmt.Println("2. Add Member")
 	fmt.Println("3. Remove Book")
@@ -14,7 +15,8 @@ func BookController(library *services.Library) {
 	fmt.Println("5. Return Book")
 	fmt.Println("6. List Available Books")
 	fmt.Println("7. List Borrowed Books")
-	fmt.Println("8. Exit")
+	fmt.Println("8. Reserve Book")
+	fmt.Println("9. Exit")
 
 	var choice int
 	fmt.Scan(&choice)
@@ -37,6 +39,7 @@ func BookController(library *services.Library) {
 		fmt.Println("Enter member name: ")
 		fmt.Scan(&member.Name)
 		member.BorrowedBooks = []models.Books{}
+		member.ReservedBooks = []models.Books{}
 		library.AddMember(member)
 	case 3:
 		var bookId int
@@ -66,6 +69,16 @@ func BookController(library *services.Library) {
 		fmt.Println("Borrowed books: ")
 		library.ListBorrowedBooks()
 	case 8:
+		var memberID int
+		var bookID int
+		fmt.Println("Enter member id: ")
+		fmt.Scan(&memberID)
+		fmt.Println("Enter book id: ")
+		fmt.Scan(&bookID)
+
+		reservationHandler.SubmitReservation(memberID, bookID)
+		fmt.Println("Reservation request submitted")
+	case 9:
 		fmt.Println("Thank you for using the library management system")
 		return
 	default:
@@ -76,9 +89,8 @@ func BookController(library *services.Library) {
 	var continueChoice string
 	fmt.Scan(&continueChoice)
 	if continueChoice == "y" {
-		BookController(library)
+		BookController(library, reservationHandler)
 	} else {
 		fmt.Println("Thank you for using the library management system")
 	}
-
 }
