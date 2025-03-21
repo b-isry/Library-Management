@@ -99,9 +99,21 @@ After each operation, the system prompts the user to continue (y/n) to perform a
 
 ## Project Structure
 
-'''
-Library-Management/ ├── main.go # Entry point ├── controllers/ │ └── library_controller.go # User interface handling ├── models/ │ └── models.go # Data structures └── services/ │ └── library_service.go # Business logic ├── workers/ │ └── reservation_worker.go # Handles multiple reservation requests ├── Tests/ └── library_test.go # Tests functionalities
-'''
+```
+Library-Management/
+├── main.go                 # Entry point
+├── workers/ 
+│   └── reservation_worker.go # Handles multiple reservation requests
+├── controllers/
+│   └── library_controller.go  # User interface handling
+├── models/
+│   └── models.go          # Data structures
+└── services/
+│   └── library_service.go # Business logic
+├── Tests/
+    └── library_test.go    #Tests functionalities
+
+```
 
 ## Data Structures
 
